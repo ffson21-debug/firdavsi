@@ -1,0 +1,1272 @@
+/*
+╔══════════════════════════════════════════════════════════════╗
+║   ФИНАНСОВЫЙ ИИ-ЧАТБОТ ДЛЯ МОЛОДЁЖИ КЫРГЫЗСТАНА           ║
+║   style.css — Все стили приложения                          ║
+║                                                              ║
+║   Структура файла:                                           ║
+║   1.  CSS-переменные (тема, цвета, типографика)             ║
+║   2.  Сброс стилей и базовые настройки                      ║
+║   3.  Лэйаут: app-container, sidebar, chat-area             ║
+║   4.  Компоненты сайдбара                                   ║
+║   5.  Шапка чата                                            ║
+║   6.  Приветственный экран                                   ║
+║   7.  Сообщения (пользователь / бот)                        ║
+║   8.  Индикатор печатания                                   ║
+║   9.  Поле ввода                                            ║
+║   10. Модальное окно                                        ║
+║   11. Toast-уведомления                                     ║
+║   12. Скроллбар                                             ║
+║   13. Анимации                                              ║
+║   14. Адаптивный дизайн (мобильные)                        ║
+╚══════════════════════════════════════════════════════════════╝
+*/
+
+/* ═══════════════════════════════════════════════════════════════
+   1. CSS-ПЕРЕМЕННЫЕ — единый источник токенов дизайна
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  /* ── ОСНОВНЫЕ ЦВЕТА ФОНА (тёмная тема) ── */
+  --bg-base:       #161b24;   /* Самый тёмный фон, основа */
+  --bg-surface:     #1c2230;   /* Поверхность: сайдбар, карточки */
+  --bg-elevated:    #161b24;   /* Приподнятые элементы */
+  --bg-hover:       #1c2230;   /* Hover-состояние */
+  --bg-active:      #1f2836;   /* Активный элемент */
+  --bg-input:       #131820;   /* Поле ввода */
+
+  /* ── АКЦЕНТНЫЕ ЦВЕТА ── */
+  --accent:        #1c2230;   /* Основной акцент: бирюзовый (деньги, свежесть) */
+  --accent-dim:     #161b24;/* Полупрозрачный акцент для фонов */
+  --accent-hover:   #050505;   /* Более яркий акцент при наведении */
+  --accent-soft:    #8a8492; /* Очень тихий акцент */
+
+  /* ── ЦВЕТА ТЕКСТА ── */
+  --text-primary:   #e8edf5;   /* Основной текст */
+  --text-secondary: #8892a4;   /* Вторичный: подписи, метки */
+  --text-muted:     #4a5568;   /* Приглушённый текст */
+  --text-accent:    #00d4aa;   /* Текст в цвет акцента */
+
+  /* ── РАМКИ / РАЗДЕЛИТЕЛИ ── */
+  --border:         #1e2a3a;   /* Обычная рамка */
+  --border-light:   #253040;   /* Светлее обычной */
+
+  /* ── СТАТУСНЫЕ ЦВЕТА ── */
+  --color-error:    #181427;   /* Ошибка */
+  --color-error-bg: #ff4d6a15;
+  --color-success:  #00d4aa;   /* Успех */
+  --color-warn:     #ffb347;   /* Предупреждение */
+
+  /* ── ТИПОГРАФИКА ── */
+  --font-display: 'Unbounded', sans-serif;  /* Заголовки, логотип */
+  --font-body:    'Onest', sans-serif;      /* Основной текст */
+
+  /* ── РАЗМЕРЫ ── */
+  --sidebar-width: 280px;
+  --header-h:      60px;
+  --input-area-h:  auto;
+  --radius-sm:     8px;
+  --radius-md:     12px;
+  --radius-lg:     18px;
+  --radius-xl:     24px;
+
+  /* ── ТЕНИ ── */
+  --shadow-sm:  0 2px 8px rgba(0,0,0,.3);
+  --shadow-md:  0 4px 20px rgba(0,0,0,.4);
+  --shadow-lg:  0 8px 40px rgba(0,0,0,.6);
+  --shadow-accent: 0 0 24px rgba(0,212,170,.12);
+
+  /* ── ПЕРЕХОДЫ ── */
+  --transition: 200ms cubic-bezier(.4,0,.2,1);
+  --transition-slow: 350ms cubic-bezier(.4,0,.2,1);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   2. СБРОС СТИЛЕЙ И БАЗОВЫЕ НАСТРОЙКИ
+   ═══════════════════════════════════════════════════════════════ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background: var(--bg-base);
+  height: 100dvh;         /* Dynamic viewport height — для мобильных */
+  overflow: hidden;       /* Прокрутка только внутри .messages-wrap */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
+  border: none;
+  outline: none;
+  background: none;
+  color: inherit;
+}
+
+textarea {
+  font-family: var(--font-body);
+  resize: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   3. ЛЭЙАУТ: app-container
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Корневой контейнер: горизонтальный flex */
+.app-container {
+  display: flex;
+  height: 100dvh;
+  width: 100%;
+  background: var(--bg-base);
+}
+
+/* Тёмный оверлей поверх контента при открытом сайдбаре на мобильных */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  backdrop-filter: blur(2px);
+  z-index: 40;
+  transition: opacity var(--transition);
+}
+.sidebar-overlay.active {
+  display: block;
+  animation: fadeIn 200ms ease forwards;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   4. КОМПОНЕНТЫ САЙДБАРА
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Основная панель сайдбара */
+.sidebar {
+  width: var(--sidebar-width);
+  min-width: var(--sidebar-width);
+  height: 100%;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 50;
+  transition: transform var(--transition-slow);
+
+  /* Тонкий паттерн-фон для глубины */
+  background-image:
+    radial-gradient(ellipse at 50% 0%, rgba(0,212,170,.04) 0%, transparent 70%);
+}
+
+/* ── Шапка сайдбара ── */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* Логотип */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Иконка-кружок логотипа */
+.logo-icon {
+  width: 38px;
+  height: 38px;
+  background: linear-gradient(135deg, var(--accent), #007a60);
+  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  color: #000;
+  box-shadow: var(--shadow-accent);
+  flex-shrink: 0;
+}
+
+/* Текст логотипа */
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+.logo-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+.logo-subtitle {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 2px;
+}
+
+/* Кнопка закрытия сайдбара (только мобильные, управляется JS) */
+.sidebar-close-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  display: none;          /* По умолчанию скрыта, показывается в @media */
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: background var(--transition), color var(--transition);
+}
+.sidebar-close-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* ── Кнопка «Новый чат» ── */
+.new-chat-btn {
+  margin: 12px 12px 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: var(--accent-dim);
+  border: 1px solid rgb(185, 176, 176);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background var(--transition), border-color var(--transition),
+              box-shadow var(--transition), transform var(--transition);
+  flex-shrink: 0;
+}
+.new-chat-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: var(--shadow-accent);
+  transform: translateY(-1px);
+}
+.new-chat-btn:active {
+  transform: translateY(0);
+}
+
+/* ── Секция истории сессий ── */
+.sessions-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 4px 0;
+}
+
+/* Заголовок секции */
+.sessions-label {
+  padding: 8px 16px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* Прокручиваемый список сессий */
+.sessions-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2px 8px 8px;
+}
+
+/* Состояние «нет чатов» */
+.sessions-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 30px 16px;
+  color: var(--text-muted);
+  text-align: center;
+}
+.sessions-empty p {
+  font-size: 12px;
+}
+
+/* Одна карточка-сессия */
+.session-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+  position: relative;
+  group: true;
+}
+.session-item:hover {
+  background: var(--bg-hover);
+}
+.session-item.active {
+  background: var(--bg-active);
+  border-left: 2px solid var(--accent);
+  padding-left: 8px;
+}
+
+/* Иконка сессии */
+.session-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: color var(--transition);
+}
+.session-item.active .session-icon,
+.session-item:hover .session-icon {
+  color: var(--accent);
+}
+
+/* Текст сессии (название + дата) */
+.session-info {
+  flex: 1;
+  min-width: 0;
+}
+.session-name {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+.session-date {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+/* Кнопка удаления сессии (видна при hover) */
+.session-delete-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity var(--transition), color var(--transition),
+              background var(--transition);
+  flex-shrink: 0;
+}
+.session-item:hover .session-delete-btn {
+  opacity: 1;
+}
+.session-delete-btn:hover {
+  color: var(--color-error);
+  background: var(--color-error-bg);
+}
+
+/* ── Подвал сайдбара ── */
+.sidebar-footer {
+  padding: 12px 14px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Бейджик модели */
+.model-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 20px;
+  background: var(--accent-soft);
+  border: 1px solid rgba(0,212,170,.15);
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 600;
+  width: fit-content;
+}
+
+/* Дисклеймер внизу */
+.footer-hint {
+  font-size: 10px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   5. ШАПКА ЧАТА
+   ═══════════════════════════════════════════════════════════════ */
+.chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;             /* Важно для overflow в flex */
+  background: var(--bg-base);
+  position: relative;
+}
+
+.chat-header {
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 18px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: rgba(10,12,16,.8);
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Кнопка-бургер (видна только на мобильных) */
+.menu-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  display: none;             /* Показывается в @media */
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  transition: background var(--transition), color var(--transition);
+}
+.menu-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* Блок с заголовком */
+.chat-title-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.chat-title {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.2px;
+}
+.chat-subtitle {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Кнопки-иконки в шапке */
+.header-actions {
+  display: flex;
+  gap: 4px;
+}
+.icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: background var(--transition), color var(--transition);
+}
+.icon-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+.icon-btn.danger:hover {
+  color: var(--color-error);
+  background: var(--color-error-bg);
+}
+#deleteChatBtn {
+  /* Стиль «опасной» кнопки удаления — добавляем класс через JS */
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   6. ПРИВЕТСТВЕННЫЙ ЭКРАН
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Обёртка сообщений с прокруткой */
+.messages-wrap {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Приветственный блок — центрируется по вертикали */
+.welcome-screen {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+  position: relative;
+  animation: fadeSlideUp 400ms ease forwards;
+}
+
+/* Фоновое свечение */
+.welcome-glow {
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(0,212,170,.07) 0%, transparent 70%);
+  pointer-events: none;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.welcome-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 540px;
+  gap: 16px;
+  position: relative;
+}
+
+/* Аватар на приветственном экране */
+.welcome-avatar {
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(135deg, var(--accent), #a72466);
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  color: #000;
+  box-shadow: 0 0 40px rgba(0,212,170,.25);
+  animation: pulse 3s ease-in-out infinite;
+}
+
+.welcome-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+
+.welcome-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* Сетка быстрых подсказок */
+.quick-prompts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+/* Одна кнопка подсказки */
+.quick-prompt-btn {
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  font-weight: 500;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transition: background var(--transition), border-color var(--transition),
+              color var(--transition), transform var(--transition),
+              box-shadow var(--transition);
+  cursor: pointer;
+  line-height: 1.4;
+}
+.quick-prompt-btn:hover {
+  background: var(--bg-hover);
+  border-color: rgba(0,212,170,.3);
+  color: var(--text-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+.quick-prompt-btn:active {
+  transform: translateY(0);
+}
+/* Иконка внутри подсказки */
+.quick-prompt-btn i,
+.quick-prompt-btn svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   7. СООБЩЕНИЯ
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Список сообщений */
+.messages-list {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0 12px;
+}
+
+/* Одно сообщение (общий контейнер) */
+.message {
+  display: flex;
+  gap: 12px;
+  padding: 6px 20px;
+  max-width: 100%;
+  animation: fadeSlideUp 250ms ease forwards;
+  opacity: 0;
+}
+
+/* ── Сообщение ПОЛЬЗОВАТЕЛЯ ── */
+.message.user {
+  flex-direction: row-reverse; ;  /* Аватар справа */
+  
+}
+
+/* ── Сообщение БОТА ── */
+.message.bot {
+  flex-direction: row;
+}
+
+/* Аватар (пользователь или бот) */
+.message-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  margin-top: 2px;
+}
+
+/* Аватар бота — акцентный */
+.message.bot .message-avatar {
+  background: linear-gradient(135deg, var(--accent), #007a60);
+  color: #000;
+  box-shadow: 0 0 12px rgba(0,212,170,.2);
+}
+
+/* Аватар пользователя — нейтральный */
+.message.user .message-avatar {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-light);
+  color: var(--text-secondary);
+}
+
+/* Блок содержимого сообщения */
+.message-body {
+  max-width: 75%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Пузырь сообщения */
+.message-bubble {
+  padding: 10px 14px;
+  border-radius: var(--radius-lg);
+  font-size: 14px;
+  line-height: 1.65;
+  word-break: break-word;
+}
+
+/* Пузырь пользователя — тёмно-зелёный */
+.message.user .message-bubble {
+  background: linear-gradient(135deg, #121615, #353233);
+  border: 1px solid rgba(243, 239, 240, 0.15);
+  color: var(--text-primary);
+  border-bottom-right-radius: var(--radius-sm);
+}
+
+/* Пузырь бота — тёмно-серый */
+.message.bot .message-bubble {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-bottom-left-radius: var(--radius-sm);
+}
+
+/* Время сообщения */
+.message-time {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  padding: 0 4px;
+}
+.message.user .message-time {
+  text-align: right;
+}
+
+/* ── Форматирование Markdown внутри пузырей ── */
+
+/* Параграфы в тексте бота */
+.message-bubble p {
+  margin-bottom: 8px;
+}
+.message-bubble p:last-child {
+  margin-bottom: 0;
+}
+
+/* Жирный и курсив */
+.message-bubble strong { color: var(--text-primary); font-weight: 600; }
+.message-bubble em     { color: var(--text-secondary); }
+
+/* Инлайн-код */
+.message-bubble code {
+  background: rgba(0,212,170,.1);
+  border: 1px solid rgba(0,212,170,.15);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 12.5px;
+  color: var(--accent);
+}
+.copy-btn {
+    margin-left: 8px;
+    background: #e0e0e0;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 2px 6px;
+    color: #333;
+}
+
+.copy-btn:hover {
+    background: #cfcfcf;
+}
+
+.bubble {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Блок кода */
+.message-bubble pre {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+  margin: 8px 0;
+}
+.message-bubble pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  color: var(--text-primary);
+}
+
+/* Ненумерованные списки */
+.message-bubble ul {
+  padding-left: 18px;
+  margin: 6px 0;
+}
+.message-bubble ul li {
+  margin-bottom: 3px;
+}
+
+/* Нумерованные списки */
+.message-bubble ol {
+  padding-left: 20px;
+  margin: 6px 0;
+}
+.message-bubble ol li {
+  margin-bottom: 3px;
+}
+
+/* Цитата */
+.message-bubble blockquote {
+  border-left: 3px solid var(--accent);
+  padding-left: 10px;
+  color: var(--text-secondary);
+  margin: 6px 0;
+}
+
+/* Горизонтальный разделитель */
+.message-bubble hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 10px 0;
+}
+
+/* Заголовки внутри ответа бота */
+.message-bubble h1,
+.message-bubble h2,
+.message-bubble h3 {
+  font-family: var(--font-display);
+  margin: 10px 0 5px;
+  color: var(--text-primary);
+}
+.message-bubble h1 { font-size: 16px; }
+.message-bubble h2 { font-size: 14px; }
+.message-bubble h3 { font-size: 13px; color: var(--accent); }
+
+/* ── Сообщение об ошибке ── */
+.message-bubble.error {
+  background: var(--color-error-bg);
+  border-color: rgba(255,77,106,.2);
+  color: var(--color-error);
+}
+.message-bubble.error .error-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   8. ИНДИКАТОР «ПЕЧАТАЕТ...»
+   ═══════════════════════════════════════════════════════════════ */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 20px 10px;
+  animation: fadeIn 200ms ease forwards;
+}
+
+/* Аватар индикатора */
+.typing-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--accent), #9d2783);
+  display: grid;
+  place-items: center;
+  color: #000;
+  flex-shrink: 0;
+}
+
+/* Три анимированные точки */
+.typing-dots {
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  border-bottom-left-radius: var(--radius-sm);
+}
+.typing-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: typingDot 1.4s ease-in-out infinite;
+  opacity: 0.4;
+}
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+/* Текст рядом с точками */
+.typing-text {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   9. ПОЛЕ ВВОДА
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Обёртка всей зоны ввода */
+.input-area {
+  padding: 12px 16px 14px;
+  flex-shrink: 0;
+  background: linear-gradient(to top, var(--bg-base) 70%, transparent);
+}
+
+/* Внутренний контейнер: textarea + кнопка */
+.input-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 8px 10px 8px 14px;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  position: relative;
+}
+.input-container:focus-within {
+  border-color: rgba(212, 0, 127, 0.35);
+  box-shadow: 0 0 0 3px rgba(201, 209, 208, 0.07);
+}
+
+/* Само поле ввода */
+.message-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  max-height: 160px;         /* Максимальная высота при авторасширении */
+  overflow-y: auto;
+  padding: 3px 0;
+}
+.message-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Счётчик символов */
+.char-counter {
+  position: absolute;
+  bottom: 8px;
+  right: 52px;
+  font-size: 10px;
+  color: var(--text-muted);
+  pointer-events: none;
+  transition: color var(--transition);
+}
+.char-counter.warn {
+  color: var(--color-warn);
+}
+.char-counter.limit {
+  color: var(--color-error);
+}
+
+/* Кнопка отправки */
+.send-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  display: grid;
+  place-items: center;
+  color: #640303;
+  flex-shrink: 0;
+  transition: background var(--transition), transform var(--transition),
+              box-shadow var(--transition), opacity var(--transition);
+  box-shadow: 0 2px 8px rgb(255, 0, 0);
+}
+.send-btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgb(255, 0, 0);
+}
+.send-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+/* Задизейбленное состояние */
+.send-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Подсказка под полем ввода */
+.input-hint {
+  margin-top: 6px;
+  font-size: 10.5px;
+  color: var(--text-muted);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   10. МОДАЛЬНОЕ ОКНО
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Затемнение фона */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 20px;
+  animation: fadeIn 200ms ease forwards;
+}
+
+/* Само окно */
+.modal {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 28px 26px 24px;
+  max-width: 360px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  box-shadow: var(--shadow-lg);
+  animation: scaleIn 200ms cubic-bezier(.34,1.56,.64,1) forwards;
+}
+
+/* Иконка в модальном окне */
+.modal-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--color-error-bg);
+  display: grid;
+  place-items: center;
+  color: var(--color-error);
+  margin-bottom: 4px;
+}
+
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.modal-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.6;
+}
+
+/* Кнопки в модальном окне */
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  margin-top: 8px;
+}
+.modal-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  transition: background var(--transition), transform var(--transition);
+}
+.modal-btn--cancel {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+.modal-btn--cancel:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+.modal-btn--confirm {
+  background: var(--color-error);
+  color: #fff;
+}
+.modal-btn--confirm:hover {
+  background: #ff6b82;
+  transform: translateY(-1px);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   11. TOAST-УВЕДОМЛЕНИЯ
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Контейнер: прикреплён к правому нижнему углу */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 20px;
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+/* Одно уведомление */
+.toast {
+  padding: 11px 16px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: var(--shadow-md);
+  max-width: 300px;
+  pointer-events: all;
+  animation: toastIn 300ms cubic-bezier(.34,1.56,.64,1) forwards;
+}
+.toast.hide {
+  animation: toastOut 250ms ease forwards;
+}
+.toast.success {
+  background: rgb(166, 255, 0);
+  border: 1px solid rgb(52, 7, 255);
+  color: var(--accent);
+}
+.toast.error {
+  background: var(--color-error-bg);
+  border: 1px solid rgba(255,77,106,.3);
+  color: var(--color-error);
+}
+.toast.info {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-light);
+  color: var(--text-secondary);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   12. КАСТОМНЫЙ СКРОЛЛБАР
+   ═══════════════════════════════════════════════════════════════ */
+::-webkit-scrollbar         { width: 5px; height: 5px; }
+::-webkit-scrollbar-track   { background: transparent; }
+::-webkit-scrollbar-thumb   { background: var(--bg-elevated); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
+
+/* ═══════════════════════════════════════════════════════════════
+   13. АНИМАЦИИ
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Появление снизу вверх */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Простое появление */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Увеличение из центра */
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Анимация точек печатания */
+@keyframes typingDot {
+  0%, 100% { opacity: 0.4; transform: translateY(0); }
+  50%       { opacity: 1;   transform: translateY(-4px); }
+}
+
+/* Пульсация аватара */
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 40px rgb(255, 0, 0); }
+  50%       { box-shadow: 0 0 60px rgb(255, 0, 0); }
+}
+
+/* Появление toast справа */
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Уход toast вправо */
+@keyframes toastOut {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(20px); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   14. АДАПТИВНЫЙ ДИЗАЙН (мобильные устройства)
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 700px) {
+
+  /* Сайдбар становится абсолютным, выдвигается сбоку */
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100dvh;
+    transform: translateX(-100%);   /* Скрыт по умолчанию */
+    transition: transform var(--transition-slow);
+    box-shadow: var(--shadow-lg);
+  }
+  /* JS добавляет класс .open чтобы показать */
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* Показываем кнопку-бургер */
+  .menu-btn {
+    display: flex;
+  }
+
+  /* Показываем кнопку закрытия в сайдбаре */
+  .sidebar-close-btn {
+    display: flex;
+  }
+
+  /* Более узкий чат на мобильных */
+  .message-body {
+    max-width: 86%;
+  }
+
+  /* Одна колонка для быстрых подсказок */
+  .quick-prompts {
+    grid-template-columns: 1fr;
+  }
+
+  /* Меньше padding у сообщений */
+  .message {
+    padding: 5px 12px;
+  }
+
+  .input-area {
+    padding: 10px 10px 12px;
+  }
+
+  /* Уменьшаем заголовок приветствия */
+  .welcome-title {
+    font-size: 20px;
+  }
+
+  /* Toast внизу по центру на мобильных */
+  .toast-container {
+    right: 10px;
+    left: 10px;
+    bottom: 16px;
+    align-items: center;
+  }
+  .toast {
+    max-width: 100%;
+    width: 100%;
+  }
+}
+
+/* Дополнительно: очень маленькие экраны */
+@media (max-width: 380px) {
+  .welcome-avatar {
+    width: 56px;
+    height: 56px;
+  }
+  .welcome-title {
+    font-size: 17px;
+  }
+  .welcome-desc {
+    font-size: 12.5px;
+  }
+}

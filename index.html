@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<!--
+  ╔══════════════════════════════════════════════════════════════╗
+  ║   ФИНАНСОВЫЙ ИИ-ЧАТБОТ ДЛЯ МОЛОДЁЖИ КЫРГЫЗСТАНА           ║
+  ║   index.html — Главная страница приложения                  ║
+  ║                                                              ║
+  ║   Структура файла:                                           ║
+  ║   1. Мета-теги и подключение ресурсов                       ║
+  ║   2. Боковая панель (история чатов)                         ║
+  ║   3. Главная область чата                                    ║
+  ║   4. Поле ввода сообщения                                   ║
+  ╚══════════════════════════════════════════════════════════════╝
+-->
+<html lang="ru">
+<head>
+  <!-- Кодировка и масштаб для мобильных устройств -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Заголовок вкладки браузера -->
+  <title>Firdavsi GPT — Финансовый_помощник</title>
+
+  <!-- Подключение Google Fonts: Unbounded (заголовки) + Onest (текст) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700&family=Onest:wght@300;400;500;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Иконки Lucide (SVG-иконки через CDN) -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+  <!-- Подключение нашей таблицы стилей -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <!-- ══════════════════════════════════════════════
+       ОВЕРЛЕЙ ДЛЯ ЗАКРЫТИЯ САЙДБАРА НА МОБИЛЬНЫХ
+       Появляется при открытом боковом меню
+  ══════════════════════════════════════════════ -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- ══════════════════════════════════════════════
+       ОСНОВНОЙ КОНТЕЙНЕР ПРИЛОЖЕНИЯ
+       Flex-контейнер: сайдбар + основная область
+  ══════════════════════════════════════════════ -->
+  <div class="app-container">
+
+    <!-- ─────────────────────────────────────────────
+         БОКОВАЯ ПАНЕЛЬ (SIDEBAR)
+         Содержит: логотип, кнопку нового чата,
+         список сохранённых сессий
+    ───────────────────────────────────────────── -->
+    <aside class="sidebar" id="sidebar">
+
+      <!-- Шапка сайдбара с логотипом -->
+      <div class="sidebar-header">
+        <!-- Логотип: иконка + название -->
+        <div class="logo">
+          <div class="logo-icon">
+            <!-- SVG-иконка монеты/финансов -->
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 6v6l4 2"/>
+            </svg>
+          </div>
+          <div class="logo-text">
+            <span class="logo-title">Firdavsi</span>
+            <span class="logo-subtitle">GPT</span>
+          </div>
+        </div>
+
+        <!-- Кнопка закрытия сайдбара (только мобильные) -->
+        <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Закрыть меню">
+          <i data-lucide="x" width="18" height="18"></i>
+        </button>
+      </div>
+
+      <!-- Кнопка создания нового чата -->
+      <button class="new-chat-btn" id="newChatBtn">
+        <i data-lucide="plus" width="16" height="16"></i>
+        <span>Новый чат</span>
+      </button>
+
+      <!-- ─── СПИСОК СЕССИЙ ─────────────────────────
+           Динамически заполняется из localStorage
+           через функцию renderSessionList() в app.js
+      ─────────────────────────────────────────────── -->
+      <div class="sessions-section">
+        <div class="sessions-label">История чатов</div>
+        <!-- Список сессий; заполняется JS -->
+        <div class="sessions-list" id="sessionsList">
+          <!-- Заглушка при пустой истории -->
+          <div class="sessions-empty" id="sessionsEmpty">
+            <i data-lucide="message-square" width="28" height="28"></i>
+            <p>Чатов пока нет</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Подвал сайдбара: информация о модели -->
+      <div class="sidebar-footer">
+        <div class="model-badge">
+          <i data-lucide="cpu" width="12" height="12"></i>
+          <span>Llama 4 Scout · Groq</span>
+        </div>
+        <div class="footer-hint">Советы только для изучения. Не является инвестиционной рекомендацией.</div>
+      </div>
+    </aside>
+    
+
+    <!-- ─────────────────────────────────────────────
+         ГЛАВНАЯ ОБЛАСТЬ ЧАТА (MAIN)
+         Содержит: шапку, область сообщений, ввод
+    ───────────────────────────────────────────── -->
+    <main class="chat-area">
+
+      <!-- ─── ШАПКА ЧАТА ────────────────────────────
+           Кнопка-бургер (мобильные) + заголовок
+      ─────────────────────────────────────────────── -->
+      <header class="chat-header">
+        <!-- Кнопка открытия сайдбара на мобильных -->
+        <button class="menu-btn" id="menuBtn" aria-label="Открыть меню">
+          <i data-lucide="menu" width="20" height="20"></i>
+        </button>
+
+        <!-- Заголовок текущей сессии -->
+        <div class="chat-title-wrap">
+          <h1 class="chat-title" id="chatTitle">Финансовый помощник</h1>
+          <span class="chat-subtitle">Задайте любой вопрос о финансах</span>
+        </div>
+
+        <!-- Кнопки действий: удалить текущий чат -->
+        <div class="header-actions">
+          <button class="icon-btn" id="deleteChatBtn" aria-label="Удалить чат" title="Удалить текущий чат">
+            <i data-lucide="trash-2" width="18" height="18"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- ─── ОБЛАСТЬ СООБЩЕНИЙ ─────────────────────
+           Прокручиваемый контейнер с сообщениями.
+           Когда чат пустой — показывается приветствие.
+      ─────────────────────────────────────────────── -->
+      <div class="messages-wrap" id="messagesWrap">
+
+        <!-- ПРИВЕТСТВЕННЫЙ ЭКРАН (скрывается после первого сообщения) -->
+        <div class="welcome-screen" id="welcomeScreen">
+          <div class="welcome-glow"></div>
+          <div class="welcome-content">
+            <!-- Большой аватар бота -->
+            <div class="welcome-avatar">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+              </svg>
+            </div>
+            <h2 class="welcome-title">Привет! Я Adi KG</h2>
+            <p class="welcome-desc">
+              Твой финансовый помощник для молодёжи Кыргызстана.<br/> 
+              Помогу разобраться в бюджете, сбережениях и инвестициях.
+            </p>
+
+            <!-- Быстрые подсказки — часто задаваемые темы -->
+            <div class="quick-prompts">
+              <button class="quick-prompt-btn" data-prompt="Как начать откладывать деньги?">
+                <i data-lucide="piggy-bank" width="14" height="14"></i>
+                Как начать откладывать?
+              </button>
+              <button class="quick-prompt-btn" data-prompt="Расскажи про депозиты в банках Кыргызстана">
+                <i data-lucide="landmark" width="14" height="14"></i>
+                Депозиты в КГ банках
+              </button>
+              <button class="quick-prompt-btn" data-prompt="Как составить личный бюджет на месяц?">
+                <i data-lucide="bar-chart-2" width="14" height="14"></i>
+                Личный бюджет
+              </button>
+              <button class="quick-prompt-btn" data-prompt="Что такое инфляция и как она влияет на мои деньги?">
+                <i data-lucide="trending-up" width="14" height="14"></i>
+                Что такое инфляция?
+              </button>
+              <button class="quick-prompt-btn" data-prompt="Как избежать долговой ловушки?">
+                <i data-lucide="shield" width="14" height="14"></i>
+                Избежать долгов
+              </button>
+              <button class="quick-prompt-btn" data-prompt="Стоит ли брать кредит на учёбу?">
+                <i data-lucide="graduation-cap" width="14" height="14"></i>
+                Кредит на учёбу
+              </button>
+            </div>
+          </div>
+        </div>
+
+
+        
+
+        <!-- КОНТЕЙНЕР СООБЩЕНИЙ (заполняется JS) -->
+        <div class="messages-list" id="messagesList"></div>
+
+      </div><!-- /messages-wrap -->
+
+      <!-- ─── ИНДИКАТОР «ПЕЧАТАЕТ...» ───────────────
+           Показывается пока ИИ генерирует ответ
+      ─────────────────────────────────────────────── -->
+      <div class="typing-indicator" id="typingIndicator" style="display:none;">
+        <div class="typing-avatar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 6v6l4 2"/>
+          </svg>
+        </div>
+        <div class="typing-dots">
+          <span></span><span></span><span></span>
+        </div>
+        <span class="typing-text">FinBot думает...</span>
+      </div>
+
+      <!-- ─── ПОЛЕ ВВОДА ─────────────────────────────
+           Textarea с авторасширением + кнопка отправки
+      ─────────────────────────────────────────────── -->
+      <div class="input-area">
+        <div class="input-container">
+          <!-- Textarea: авторасширяется при вводе -->
+          <textarea
+            id="messageInput"
+            class="message-input"
+            placeholder="Спроси что-нибудь о финансах..."
+            rows="1"
+            maxlength="2000"
+            aria-label="Введите сообщение"
+          ></textarea>
+
+          <!-- Счётчик символов -->
+          <div class="char-counter" id="charCounter">0 / 2000</div>
+
+          <!-- Кнопка отправки -->
+          <button class="send-btn" id="sendBtn" aria-label="Отправить сообщение" disabled>
+            <i data-lucide="send" width="18" height="18"></i>
+          </button>
+        </div>
+
+        <!-- Подсказка под полем ввода -->
+        <p class="input-hint">
+          <i data-lucide="info" width="11" height="11"></i>
+          Enter — отправить · Shift+Enter — новая строка
+        </p>
+      </div><!-- /input-area -->
+
+    </main><!-- /chat-area -->
+
+  </div><!-- /app-container -->
+
+  <!-- ══════════════════════════════════════════════
+       МОДАЛЬНОЕ ОКНО ПОДТВЕРЖДЕНИЯ УДАЛЕНИЯ
+       Появляется перед удалением сессии
+  ══════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="deleteModal" style="display:none;">
+    <div class="modal">
+      <div class="modal-icon">
+        <i data-lucide="trash-2" width="24" height="24"></i>
+      </div>
+      <h3 class="modal-title">Удалить чат?</h3>
+      <p class="modal-desc">Это действие нельзя отменить. Вся история сообщений будет удалена.</p>
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn--cancel" id="modalCancelBtn">Отмена</button>
+        <button class="modal-btn modal-btn--confirm" id="modalConfirmBtn">Удалить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       TOAST-УВЕДОМЛЕНИЯ
+       Контейнер для всплывающих сообщений
+  ══════════════════════════════════════════════ -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Подключение основного JS-файла -->
+  <script src="app.js"></script>
+</body>
+</html>
